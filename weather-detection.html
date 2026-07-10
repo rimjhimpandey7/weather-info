@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weather App</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+    body {
+      background: linear-gradient(to right, #2980b9, #6dd5fa);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 20px;
+    }
+    .weather-app {
+      background: #ffffffdd;
+      padding: 30px;
+      border-radius: 15px;
+      width: 100%;
+      max-width: 700px;
+      box-shadow: 0 0 10px #00000055;
+    }
+    h2 { text-align: center; font-size: 22px; color: #1a3a5c; }
+    .search-box { margin-top: 20px; display: flex; gap: 10px; }
+    .search-box input[type="text"] {
+      flex: 1; padding: 8px; font-size: 16px;
+      border: 1px solid #ccc; border-radius: 5px;
+    }
+    .search-box button {
+      padding: 8px 14px; font-size: 15px;
+      background: #2980b9; border: none;
+      color: white; cursor: pointer; border-radius: 5px;
+    }
+    .search-box button:hover { background: #1a6fa8; }
+    .gps-btn {
+      width: 100%; margin-top: 10px; padding: 10px;
+      font-size: 15px; background: #27ae60; color: white;
+      border: none; border-radius: 5px; cursor: pointer; font-weight: bold;
+    }
+    .gps-btn:hover { background: #1e8449; }
+    .gps-btn:disabled { background: #aaa; cursor: not-allowed; }
+    .gps-note { font-size: 12px; color: #27ae60; text-align: center; margin-top: 5px; }
+    .tabs { display: flex; gap: 8px; margin-top: 16px; }
+    .tab-btn {
+      flex: 1; padding: 8px; font-size: 14px;
+      border: 2px solid #2980b9; border-radius: 5px;
+      cursor: pointer; background: white; color: #2980b9; font-weight: bold;
+    }
+    .tab-btn.active { background: #2980b9; color: white; }
+    .date-section {
+      margin-top: 14px; display: none;
+      flex-direction: column; gap: 8px; text-align: left;
+    }
+    .date-section label { font-size: 14px; color: #555; }
+    .date-section input[type="date"] {
+      padding: 7px; font-size: 15px;
+      border: 1px solid #ccc; border-radius: 5px; width: 100%;
+    }
+    .date-section button {
+      padding: 9px; font-size: 15px; background: #2980b9;
+      color: white; border: none; border-radius: 5px;
+      cursor: pointer; font-weight: bold;
+    }
+    .date-section button:hover { background: #1a6fa8; }
+    #result { margin-top: 20px; font-size: 17px; text-align: center; }
+    #result h3 { margin-bottom: 10px; color: #1a3a5c; }
+    #result p { margin: 5px 0; color: #333; }
+    .error { color: red; }
+    .verify-btn {
+      margin-top: 15px; display: inline-block;
+      padding: 8px 16px; background: #34a853; color: white;
+      border: none; border-radius: 5px; font-size: 14px;
+      cursor: pointer; text-decoration: none;
+    }
+    .verify-btn:hover { background: #2a8a42; }
+    .badge {
+      display: inline-block; padding: 3px 10px;
+      border-radius: 20px; font-size: 13px;
+      font-weight: bold; margin-bottom: 8px;
+    }
+    .badge.live { background: #e8f5e9; color: #2a8a42; }
+    .badge.gps  { background: #e8f5e9; color: #27ae60; }
+    .badge.history { background: #fff3e0; color: #e65100; }
+    .dashboard-toggle {
+      width: 100%; margin-top: 25px; padding: 11px;
+      font-size: 15px; background: #1a3a5c; color: white;
+      border: none; border-radius: 8px; cursor: pointer; font-weight: bold;
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px; transition: background 0.2s;
+    }
+    .dashboard-toggle:hover { background: #122840; }
+    .arrow { font-size: 13px; transition: transform 0.3s; }
+    .arrow.open { transform: rotate(180deg); }
+    .dashboard {
+      margin-top: 0; border-top: 2px dashed #b0cfe8;
+      padding-top: 20px; display: none;
+    }
+    .dashboard-header {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 12px;
+    }
+    .dashboard-header h3 { color: #1a3a5c; font-size: 17px; }
+    .clear-btn {
+      padding: 5px 12px; background: #e74c3c;
+      color: white; border: none; border-radius: 5px;
+      font-size: 13px; cursor: pointer;
+    }
+    .clear-btn:hover { background: #c0392b; }
+    .no-data { color: #aaa; font-size: 14px; text-align: center; padding: 10px 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { background: #2980b9; color: white; padding: 8px 10px; text-align: left; }
+    td { padding: 7px 10px; border-bottom: 1px solid #dde; color: #333; }
+    tr:nth-child(even) td { background: #f0f7ff; }
+    tr:hover td { background: #daeaf7; }
+    .type-live { color: #2a8a42; font-weight: bold; }
+    .type-gps  { color: #27ae60; font-weight: bold; }
+    .type-hist { color: #e65100; font-weight: bold; }
+    .count-badge {
+      background: #e74c3c; color: white;
+      border-radius: 50%; font-size: 12px;
+      padding: 1px 7px; margin-left: 4px;
+    }
+  </style>
+</head>
+<body>
+<div class="weather-app">
+  <h2>🌤️ Weather App</h2>
+
+  <div class="search-box">
+    <input type="text" id="cityInput" placeholder="Enter city name..." onkeydown="if(event.key==='Enter') handleSearch()" />
+    <button onclick="handleSearch()">Search</button>
+  </div>
+
+  <button class="gps-btn" id="gpsBtn" onclick="getGPSWeather()">
+    📍 Get My Exact Location Weather (GPS)
+  </button>
+  <p class="gps-note">⚡ This will give the most accurate temperature</p>
+
+  <div class="tabs">
+    <button class="tab-btn active" id="tabLive" onclick="switchTab('live')">📡 Live Weather</button>
+    <button class="tab-btn" id="tabHistory" onclick="switchTab('history')">📅 Historical Weather</button>
+  </div>
+
+  <div class="date-section" id="dateSection">
+    <label>Select a date:</label>
+    <input type="date" id="dateInput" />
+    <button onclick="handleSearch()">🔍 Get Weather for That Day</button>
+  </div>
+
+  <div id="result"></div>
+
+  <button class="dashboard-toggle" id="dashToggleBtn" onclick="toggleDashboard()">
+    📊 Search History Dashboard
+    <span class="count-badge" id="countBadge">0</span>
+    <span class="arrow" id="dashArrow">▼</span>
+  </button>
+
+  <div class="dashboard" id="dashboard">
+    <br>
+    <div class="dashboard-header">
+      <h3>📊 Search History</h3>
+      <button class="clear-btn" onclick="clearHistory()">🗑️ Clear All</button>
+    </div>
+    <div id="dashboardTable"><p class="no-data">No searches yet.</p></div>
+  </div>
+</div>
+
+<script>
+  let currentTab = 'live';
+  let dashboardOpen = false;
+  let searchHistory = JSON.parse(localStorage.getItem('weatherHistory') || '[]');
+
+  const weatherDescriptions = {
+    0:"Clear sky ☀️",1:"Mainly clear 🌤️",2:"Partly cloudy ⛅",3:"Overcast ☁️",
+    45:"Foggy 🌫️",48:"Icy fog 🌫️",51:"Light drizzle 🌦️",53:"Drizzle 🌧️",
+    55:"Heavy drizzle 🌧️",61:"Slight rain 🌧️",63:"Rain 🌧️",65:"Heavy rain 🌧️",
+    71:"Slight snow 🌨️",73:"Snow 🌨️",75:"Heavy snow ❄️",80:"Rain showers 🌦️",
+    81:"Heavy showers 🌧️",82:"Violent showers ⛈️",95:"Thunderstorm ⛈️",
+    96:"Thunderstorm with hail ⛈️",99:"Heavy thunderstorm with hail ⛈️"
+  };
+
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('dateInput').max = today;
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  document.getElementById('dateInput').value = yesterday.toISOString().split('T')[0];
+
+  function toggleDashboard() {
+    dashboardOpen = !dashboardOpen;
+    document.getElementById('dashboard').style.display = dashboardOpen ? 'block' : 'none';
+    document.getElementById('dashArrow').classList.toggle('open', dashboardOpen);
+    if (dashboardOpen) {
+      document.getElementById('dashboard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  function updateCountBadge() {
+    document.getElementById('countBadge').textContent = searchHistory.length;
+  }
+
+  function switchTab(tab) {
+    currentTab = tab;
+    document.getElementById('tabLive').classList.toggle('active', tab === 'live');
+    document.getElementById('tabHistory').classList.toggle('active', tab === 'history');
+    document.getElementById('dateSection').style.display = tab === 'history' ? 'flex' : 'none';
+    document.getElementById('result').innerHTML = '';
+  }
+
+  function handleSearch() {
+    if (currentTab === 'live') getLiveWeather();
+    else getHistoryWeather();
+  }
+
+  // ── GPS ──
+  async function getGPSWeather() {
+    const result = document.getElementById("result");
+    const btn = document.getElementById("gpsBtn");
+    if (!navigator.geolocation) {
+      result.innerHTML = "<p class='error'>Your browser does not support GPS.</p>"; return;
+    }
+    btn.disabled = true;
+    btn.textContent = "📍 Fetching your location...";
+    result.innerHTML = "<p>Getting location from GPS...</p>";
+
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
+      const accuracy = Math.round(position.coords.accuracy);
+      try {
+        const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
+        const geoData = await geoRes.json();
+        const placeName = geoData.address?.city || geoData.address?.town || geoData.address?.village || geoData.address?.county || "Your Location";
+        const country = geoData.address?.country_code?.toUpperCase() || "";
+
+        const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code,apparent_temperature&wind_speed_unit=kmh`);
+        const weatherData = await weatherRes.json();
+        const c = weatherData.current;
+        const desc = weatherDescriptions[c.weather_code] || "Unknown";
+        const googleUrl = `https://www.google.com/search?q=weather+in+${encodeURIComponent(placeName)}`;
+
+        result.innerHTML = `
+          <span class="badge gps">📍 GPS — Exact Location</span>
+          <h3>${placeName}${country ? ', ' + country : ''}</h3>
+          <p style="font-size:12px;color:#888;">📌 Lat: ${lat.toFixed(4)}, Lon: ${lon.toFixed(4)} | Accuracy: ±${accuracy}m</p><br>
+          <p>🌡️ Temperature: <b>${c.temperature_2m}°C</b></p>
+          <p>🤔 Feels Like: <b>${c.apparent_temperature}°C</b></p>
+          <p>💧 Humidity: ${c.relative_humidity_2m}%</p>
+          <p>💨 Wind Speed: ${c.wind_speed_10m} km/h</p>
+          <p>🌤️ Condition: ${desc}</p><br>
+          <a class="verify-btn" href="${googleUrl}" target="_blank">🔍 Verify on Google</a>
+        `;
+        saveToHistory({ city:`📍 ${placeName}${country?', '+country:''}`, type:'GPS', date:'', temp:c.temperature_2m+'°C', humidity:c.relative_humidity_2m+'%', wind:c.wind_speed_10m+' km/h', condition:desc, searchedAt:new Date().toLocaleString('en-IN') });
+      } catch (e) { result.innerHTML = "<p class='error'>Failed to fetch weather data.</p>"; }
+      btn.disabled = false;
+      btn.textContent = "📍 Get My Exact Location Weather (GPS)";
+    }, (error) => {
+      btn.disabled = false;
+      btn.textContent = "📍 Get My Exact Location Weather (GPS)";
+      const msgs = {
+        1: "❌ Location permission denied. Please allow it in browser settings.",
+        2: "❌ GPS signal not found. Please try again.",
+        3: "❌ Request timed out. Please try again."
+      };
+      result.innerHTML = `<p class='error'>${msgs[error.code] || "GPS error occurred."}</p>`;
+    }, { enableHighAccuracy: true, timeout: 10000 });
+  }
+
+  // ── Live Weather ──
+  async function getLiveWeather() {
+    const city = document.getElementById("cityInput").value.trim();
+    const result = document.getElementById("result");
+    if (!city) { result.innerHTML = "<p class='error'>Please enter a city name.</p>"; return; }
+    result.innerHTML = "<p>Loading...</p>";
+    try {
+      const geoData = await getCoords(city);
+      if (!geoData) { result.innerHTML = "<p class='error'>City not found. Please check the spelling.</p>"; return; }
+      const { latitude, longitude, name, country } = geoData;
+      const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code,apparent_temperature&wind_speed_unit=kmh`);
+      const weatherData = await weatherRes.json();
+      const c = weatherData.current;
+      const desc = weatherDescriptions[c.weather_code] || "Unknown";
+      const googleUrl = `https://www.google.com/search?q=weather+in+${encodeURIComponent(name)}`;
+      result.innerHTML = `
+        <span class="badge live">📡 Live</span>
+        <h3>${name}, ${country}</h3>
+        <p>🌡️ Temperature: <b>${c.temperature_2m}°C</b></p>
+        <p>🤔 Feels Like: <b>${c.apparent_temperature}°C</b></p>
+        <p>💧 Humidity: ${c.relative_humidity_2m}%</p>
+        <p>💨 Wind Speed: ${c.wind_speed_10m} km/h</p>
+        <p>🌤️ Condition: ${desc}</p><br>
+        <a class="verify-btn" href="${googleUrl}" target="_blank">🔍 Verify on Google</a>
+      `;
+      saveToHistory({ city:`${name}, ${country}`, type:'Live', date:'', temp:c.temperature_2m+'°C', humidity:c.relative_humidity_2m+'%', wind:c.wind_speed_10m+' km/h', condition:desc, searchedAt:new Date().toLocaleString('en-IN') });
+    } catch (e) { result.innerHTML = "<p class='error'>Network error. Please check your internet connection.</p>"; }
+  }
+
+  // ── Historical Weather ──
+  async function getHistoryWeather() {
+    const city = document.getElementById("cityInput").value.trim();
+    const date = document.getElementById("dateInput").value;
+    const result = document.getElementById("result");
+    if (!city) { result.innerHTML = "<p class='error'>Please enter a city name.</p>"; return; }
+    if (!date) { result.innerHTML = "<p class='error'>Please select a date.</p>"; return; }
+    if (date >= today) { result.innerHTML = "<p class='error'>Please select a past date (before today).</p>"; return; }
+    result.innerHTML = "<p>Loading...</p>";
+    try {
+      const geoData = await getCoords(city);
+      if (!geoData) { result.innerHTML = "<p class='error'>City not found. Please check the spelling.</p>"; return; }
+      const { latitude, longitude, name, country } = geoData;
+      const histRes = await fetch(`https://archive-api.open-meteo.com/v1/archive?latitude=${latitude}&longitude=${longitude}&start_date=${date}&end_date=${date}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max,weather_code&wind_speed_unit=kmh&timezone=auto`);
+      const histData = await histRes.json();
+      const d = histData.daily;
+      if (!d || !d.temperature_2m_max) { result.innerHTML = "<p class='error'>No data found for this date.</p>"; return; }
+      const desc = weatherDescriptions[d.weather_code[0]] || "Unknown";
+      const [year, month, day] = date.split('-');
+      const displayDate = `${day}/${month}/${year}`;
+      result.innerHTML = `
+        <span class="badge history">📅 ${displayDate}</span>
+        <h3>${name}, ${country}</h3>
+        <p>🌡️ Max Temp: <b>${d.temperature_2m_max[0]}°C</b></p>
+        <p>🌡️ Min Temp: <b>${d.temperature_2m_min[0]}°C</b></p>
+        <p>🌧️ Rainfall: ${d.precipitation_sum[0]} mm</p>
+        <p>💨 Max Wind: ${d.wind_speed_10m_max[0]} km/h</p>
+        <p>🌤️ Condition: ${desc}</p>
+      `;
+      saveToHistory({ city:`${name}, ${country}`, type:'History', date:displayDate, temp:`${d.temperature_2m_min[0]}–${d.temperature_2m_max[0]}°C`, humidity:'—', wind:d.wind_speed_10m_max[0]+' km/h', condition:desc, searchedAt:new Date().toLocaleString('en-IN') });
+    } catch (e) { result.innerHTML = "<p class='error'>Network error. Please check your internet connection.</p>"; }
+  }
+
+  // ── Dashboard ──
+  function saveToHistory(entry) {
+    searchHistory.unshift(entry);
+    localStorage.setItem('weatherHistory', JSON.stringify(searchHistory));
+    renderDashboard();
+    updateCountBadge();
+  }
+
+  function renderDashboard() {
+    const container = document.getElementById('dashboardTable');
+    if (searchHistory.length === 0) {
+      container.innerHTML = '<p class="no-data">No searches yet.</p>'; return;
+    }
+    const rows = searchHistory.map((e, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${e.city}</td>
+        <td><span class="${e.type==='GPS'?'type-gps':e.type==='Live'?'type-live':'type-hist'}">
+          ${e.type==='GPS'?'📍 GPS':e.type==='Live'?'📡 Live':'📅 '+e.date}
+        </span></td>
+        <td>${e.temp}</td>
+        <td>${e.humidity}</td>
+        <td>${e.wind}</td>
+        <td>${e.condition}</td>
+        <td style="color:#888;font-size:12px">${e.searchedAt}</td>
+      </tr>
+    `).join('');
+    container.innerHTML = `
+      <table>
+        <thead><tr><th>#</th><th>City</th><th>Type</th><th>Temp</th><th>Humidity</th><th>Wind</th><th>Condition</th><th>Searched At</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+  }
+
+  function clearHistory() {
+    if (!confirm('Are you sure you want to clear all search history?')) return;
+    searchHistory = [];
+    localStorage.removeItem('weatherHistory');
+    renderDashboard();
+    updateCountBadge();
+  }
+
+  async function getCoords(city) {
+    const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en`);
+    const data = await res.json();
+    return data.results?.[0] || null;
+  }
+
+  renderDashboard();
+  updateCountBadge();
+</script>
+</body>
+</html>

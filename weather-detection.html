@@ -126,7 +126,7 @@
 </head>
 <body>
 <div class="weather-app">
-  <h2>🌤️ Weather App</h2>
+  <h2>🌤️ Weather infromation  App</h2>
 
   <div class="search-box">
     <input type="text" id="cityInput" placeholder="Enter city name..." onkeydown="if(event.key==='Enter') handleSearch()" />
@@ -152,7 +152,7 @@
   <div id="result"></div>
 
   <button class="dashboard-toggle" id="dashToggleBtn" onclick="toggleDashboard()">
-    📊 Search History Dashboard
+    
     <span class="count-badge" id="countBadge">0</span>
     <span class="arrow" id="dashArrow">▼</span>
   </button>
@@ -213,7 +213,7 @@
     else getHistoryWeather();
   }
 
-  // ── GPS ──
+  
   async function getGPSWeather() {
     const result = document.getElementById("result");
     const btn = document.getElementById("gpsBtn");

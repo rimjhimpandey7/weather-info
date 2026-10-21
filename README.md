@@ -1,4 +1,5 @@
 # Weather Information App
+This project is just for knowledge, it's help us to understand the AI works and use
 
 ## Project Overview
 The Weather Information App is a web application that provides real-time weather information for any city. It fetches live weather data using a Weather API and stores the user's search history using Local Storage.
